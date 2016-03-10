@@ -11,6 +11,7 @@ public class UserSubmission {
             This is a Java object that contains the information of a user submission.
 
         Fields:
+            long submissionID       ID of current submission
             String username         Name of the user who submitted the solution
             long submissionTime     UNIX time of when the code was submitted
             String problem          Problem ID for the submission
@@ -19,7 +20,6 @@ public class UserSubmission {
 
         Submission Sample:
             request = {
-                *** "submission_id": need to figure out
                 “username”: “sampleUsername”,
                 “time”: current_unix_time,
                 “problem”: “sampleProblem”,
@@ -31,6 +31,8 @@ public class UserSubmission {
     //TODO: Figure out submission_id mechanism
 
     //Submission Information
+    public long submissionID;
+
     public String username;
     public long submissionTime;
     public String problem;
