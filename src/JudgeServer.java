@@ -25,11 +25,28 @@ public class JudgeServer {
                             mysql_dbUsername, mysql_dbPassword);
 
                     Statement st = conn.createStatement();
-                    ResultSet rs = st.executeQuery("SELECT * FROM problems;");
+                    ResultSet rs = st.executeQuery("SELECT SubmissionID, ProblemID, UserID, SourceCode FROM submissions "
+                                                    + "WHERE SubmissionStatus='PEND'"
+                                                    + "ORDER BY SubmissionDate ASC");
 
-                    while(rs.next()){
-                        System.out.println(rs.getString("ProblemName"));
+                    /*
+                        If a new submission exists in the database, set it to "PROG" and
+                        add it to the judging queue
+                     */
+                    if (rs.next()){
+                        UserSubmission subm = new UserSubmission();
+                        subm.submissionID = Integer.parseInt(rs.getString("SubmissionID"));
+                        subm.problemID = Integer.parseInt(rs.getString("ProblemID"));
+                        subm.userID = Integer.parseInt(rs.getString("UserID"));
+                        subm.sourceCode = rs.getString("SourceCode");
+
+                        //Update the submission status in database
+                        conn.createStatement().executeQuery("UPDATE submissions SET SubmissionStats = 'PROG'"
+                                                        + "WHERE SubmissionID = '" + subm.submissionID + "';");
+
+                        submissions.add(subm);
                     }
+
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
