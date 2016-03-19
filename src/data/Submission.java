@@ -1,8 +1,8 @@
+package data;
 
-public class UserSubmission {
+public class Submission {
     public int submissionID;
     public int problemID;
     public int userID;
     public String sourceCode;
-
 }

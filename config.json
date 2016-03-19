@@ -1,0 +1,8 @@
+{
+  "db_address" : "bssoj-dev.ddns.net",
+  "db_port" : 3306,
+  "db_name" : "bssoj-sample-database",
+  "db_username" : "judgehost",
+  "db_password" : "bssojPASSWORD123456",
+  "max_thread_count" : 10
+}
