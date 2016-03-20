@@ -4,7 +4,9 @@ import data.Submission;
 import data.Testcase;
 import org.apache.commons.io.FileUtils;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.URL;
 
@@ -63,9 +65,11 @@ public class RunnerThread extends Thread {
         System.out.println("Compiling source files for testcase #" + this.tc.testcaseID);
 
         try {
-
-            Process compile = Runtime.getRuntime().exec("./compile.sh " + sourceFileName + " " + subm.language +
+            Process compile = Runtime.getRuntime().exec("compile " + sourceFileName + " " + subm.language +
                     " " + workingDirectory);
+
+            BufferedReader compileReader = new BufferedReader(new InputStreamReader(compile.getInputStream()));
+            new Console(compileReader, "compiler").start();
 
             int compileReturn = compile.waitFor();
 
@@ -74,25 +78,48 @@ public class RunnerThread extends Thread {
                 return;
             }
         } catch (Exception ex){
-            this.dbAdapter.addTestcaseResults(subm.submissionID, tc.testcaseID, "CE");
+            this.dbAdapter.addTestcaseResults(subm.submissionID, tc.testcaseID, "IR");
+            System.out.println("Error compiling source file: " + ex.getLocalizedMessage());
             return;
         }
 
         //Run and judge the source files
-        System.out.println("Running and judging files for testcase #" + this.tc.testcaseID);
+        System.out.println("Running testcase #" + this.tc.testcaseID);
         try{
-            Process runcode = Runtime.getRuntime().exec("./runcode.sh " + workingDirectory + " main " + subm.language +
+            Process runcode = Runtime.getRuntime().exec("runcode " + workingDirectory + " main " + subm.language +
                     " " + workingDirectory + "/input.txt " + workingDirectory + "/output.txt");
 
             int runReturn = runcode.waitFor();
 
             if (runReturn != 0){
-                this.dbAdapter.addTestcaseResults(subm.submissionID, tc.testcaseID, "WA");
-            } else {
-                this.dbAdapter.addTestcaseResults(subm.submissionID, tc.testcaseID, "AC");
+                this.dbAdapter.addTestcaseResults(subm.submissionID, tc.testcaseID, "RE");
+                return;
             }
         } catch (Exception ex){
-            this.dbAdapter.addTestcaseResults(subm.submissionID, tc.testcaseID, "RE");
+            this.dbAdapter.addTestcaseResults(subm.submissionID, tc.testcaseID, "IR");
+            return;
+        }
+
+        //Judge the solutions
+        System.out.println("Judging submission #" + subm.submissionID);
+        try{
+            Process judge = Runtime.getRuntime().exec("judge " + workingDirectory + "output.txt " + workingDirectory
+                    + "temp_output.txt");
+
+            System.out.println("fuck me");
+            System.out.println("judge " + workingDirectory + "output.txt " + workingDirectory
+                    + "temp_output.txt");
+
+            int judgeReturn = judge.waitFor();
+            System.out.println("DiffReturnCode=" + judgeReturn);
+
+            if (judgeReturn == 0){
+                this.dbAdapter.addTestcaseResults(subm.submissionID, tc.testcaseID, "AC");
+            } else {
+                this.dbAdapter.addTestcaseResults(subm.submissionID, tc.testcaseID, "WA");
+            }
+        } catch (Exception ex){
+            this.dbAdapter.addTestcaseResults(subm.submissionID, tc.testcaseID, "IR");
         }
     }
 }

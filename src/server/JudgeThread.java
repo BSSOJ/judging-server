@@ -18,7 +18,7 @@ public class JudgeThread extends Thread{
     }
 
     public void run() {
-        System.out.println("Started judgin thread: " + this.submission.toString());
+        System.out.println("Started judging thread: " + this.submission.toString());
 
         this.curProblem = dbAdapter.getProblem(this.submission.problemID);
         this.testcases = dbAdapter.getTestCases(this.submission.problemID);
