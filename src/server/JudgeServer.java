@@ -1,5 +1,6 @@
 package server;
 
+import data.Submission;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
@@ -9,6 +10,7 @@ import java.util.*;
 public class JudgeServer {
 
     public static Map<String, Object> serverConfig = new HashMap<>();
+    public static DatabaseAdapter dbAdapter;
 
     public static void loadConfigFromFile(String fileName){
         try{
@@ -41,10 +43,18 @@ public class JudgeServer {
 
     public static void main(String[] args) {
         loadConfigFromFile("config.json");
+        dbAdapter = new DatabaseAdapter(serverConfig);
 
         while(true){
             try{
+                Thread.sleep((long) serverConfig.get("fetch_interval"));
 
+                Submission subm = dbAdapter.nextSubmission();
+                if (subm != null){
+                    new JudgeThread(subm).run();
+                } else {
+                    System.out.println("No new submissions");
+                }
             } catch (Exception ex){
 
             }

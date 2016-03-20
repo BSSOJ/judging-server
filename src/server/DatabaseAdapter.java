@@ -92,9 +92,18 @@ public class DatabaseAdapter {
         try{
             String query = "INSERT INTO judge_results (SubmissionID, TestcaseID, JudgeResult)" +
                     " VALUES (" + submissionID + ", " + testcaseID + ", " + result + ")";
-            this.dbConnection.createStatement().executeQuery(query);
+            this.dbConnection.createStatement().executeUpdate(query);
         } catch (Exception ex){
             System.err.println("Error adding testcase results: " + ex.getLocalizedMessage());
+        }
+    }
+
+    public void setSubmissionStatus(int submissionID, String newStatus){
+        try{
+            this.dbConnection.createStatement().executeUpdate("UPDATE submissions SET SubmissionStatus='" + newStatus + "'" +
+                    " WHERE SubmissionID=" + submissionID);
+        } catch (Exception ex){
+            System.out.println("Error setting submission status: " + ex.getLocalizedMessage());
         }
     }
 
@@ -110,6 +119,8 @@ public class DatabaseAdapter {
                 subm.userID = rs.getInt("UserID");
                 subm.language = rs.getString("Language");
                 subm.sourceCode = rs.getString("SourceCode");
+
+                setSubmissionStatus(subm.submissionID, "PROG");
 
                 return subm;
             } else {

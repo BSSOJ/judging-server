@@ -30,6 +30,7 @@ public class RunnerThread extends Thread {
 
         try {
             PrintWriter sourceWriter = new PrintWriter(sourceFileName, "UTF-8");
+            sourceWriter.println(subm.sourceCode);
         } catch (Exception ex){
             System.err.println("Error writing source file to disk: " + ex.getLocalizedMessage());
         }
@@ -41,8 +42,13 @@ public class RunnerThread extends Thread {
             System.err.println("Error downloading input/output files: " + ex.getLocalizedMessage());
         }
 
+        System.out.println("Done downloading judge data");
+
         //Compile the source files
+        System.out.println("Compiling source files for testcase #" + this.tc.testcaseID);
+
         try {
+
             Process compile = Runtime.getRuntime().exec("./compile.sh " + sourceFileName + " " + subm.language +
                     " " + workingDirectory);
 
@@ -58,6 +64,7 @@ public class RunnerThread extends Thread {
         }
 
         //Run and judge the source files
+        System.out.println("Running and judging files for testcase #" + this.tc.testcaseID);
         try{
             Process runcode = Runtime.getRuntime().exec("./runcode.sh " + workingDirectory + " main " + subm.language +
                     " " + workingDirectory + "/input.txt " + workingDirectory + "/output.txt");

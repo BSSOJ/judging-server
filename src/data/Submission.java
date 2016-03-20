@@ -6,4 +6,8 @@ public class Submission {
     public int userID;
     public String language;
     public String sourceCode;
+
+    public String toString(){
+        return "[" + submissionID + "," + problemID + "," + userID + "]";
+    }
 }
