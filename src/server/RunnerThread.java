@@ -19,28 +19,43 @@ public class RunnerThread extends Thread {
         dbAdapter = new DatabaseAdapter(JudgeServer.serverConfig);
     }
 
+    public void downloadFile(String url, String dest){
+        try{
+            Runtime.getRuntime().exec("wget " + url + " -O " + dest);
+        } catch (Exception ex){
+
+        }
+    }
+
     public void run(){
-        //Write the source, input and output
-        System.out.println("Downloading judge data for submission #" + this.subm.submissionID);
+        //Setting up the directory for the submission
 
         String workingDirectory = "submissions/" + subm.submissionID + "/" + tc.testcaseID + "/";
+        File directory = new File(workingDirectory);
+
+        directory.mkdirs();
+
+        //Write the source, input and output
+        System.out.println("Downloading judge data for submission #" + this.subm.submissionID);
 
         String sourceFileName = workingDirectory + LanguageUtils.getFileName(subm.language,
                 dbAdapter.getProblem(subm.problemID).problemCode);
 
+        System.out.printf("sourceFileName=%s\n", sourceFileName);
+
         try {
             PrintWriter sourceWriter = new PrintWriter(sourceFileName, "UTF-8");
             sourceWriter.println(subm.sourceCode);
+
+            sourceWriter.close();
         } catch (Exception ex){
             System.err.println("Error writing source file to disk: " + ex.getLocalizedMessage());
         }
 
-        try{
-            FileUtils.copyURLToFile(new URL(tc.inputURL), new File(workingDirectory + "/input.txt"));
-            FileUtils.copyURLToFile(new URL(tc.outputURL), new File(workingDirectory + "/output.txt"));
-        } catch (Exception ex){
-            System.err.println("Error downloading input/output files: " + ex.getLocalizedMessage());
-        }
+        System.out.println("Source file written to disk");
+
+        downloadFile(tc.inputURL, workingDirectory + "/input.txt");
+        downloadFile(tc.outputURL, workingDirectory + "/output.txt");
 
         System.out.println("Done downloading judge data");
 

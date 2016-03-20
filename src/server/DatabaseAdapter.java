@@ -45,7 +45,7 @@ public class DatabaseAdapter {
 
     public Problem getProblem(int problemID){
         try {
-            ResultSet rs = this.dbConnection.createStatement().executeQuery("SELCET * FROM problems WHERE " +
+            ResultSet rs = this.dbConnection.createStatement().executeQuery("SELECT * FROM problems WHERE " +
                     "ProblemID=" + problemID);
 
             if (rs.next()){
@@ -60,6 +60,7 @@ public class DatabaseAdapter {
 
             return null;
         } catch (Exception ex){
+            System.out.println("Error getting problem: " + ex.getLocalizedMessage());
             return null;
         }
     }
@@ -90,8 +91,8 @@ public class DatabaseAdapter {
 
     public void addTestcaseResults(int submissionID, int testcaseID, String result){
         try{
-            String query = "INSERT INTO judge_results (SubmissionID, TestcaseID, JudgeResult)" +
-                    " VALUES (" + submissionID + ", " + testcaseID + ", " + result + ")";
+            String query = "INSERT INTO judge_results (SubmissionID, TestcaseID, TestResult)" +
+                    " VALUES (" + submissionID + ", " + testcaseID + ", '" + result + "')";
             this.dbConnection.createStatement().executeUpdate(query);
         } catch (Exception ex){
             System.err.println("Error adding testcase results: " + ex.getLocalizedMessage());
