@@ -4,7 +4,6 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 import java.io.File;
-import java.sql.*;
 import java.util.*;
 
 public class JudgeServer {
@@ -29,10 +28,10 @@ public class JudgeServer {
             serverConfig.put("db_name", config.get("db_name"));
             serverConfig.put("db_username", config.get("db_username"));
             serverConfig.put("db_password", config.get("db_password"));
-            serverConfig.put("max_thread_count", config.get("max_thread_count"));
+            serverConfig.put("fetch_interval", config.get("fetch_interval"));
 
             for (Map.Entry<String, Object> key : serverConfig.entrySet()){
-                System.out.printf("[%s] : %s\n", key.getKey(), key.getValue());
+                System.out.printf("[%s]: %s\n", key.getKey(), key.getValue());
             }
 
         } catch (Exception ex){
@@ -43,6 +42,12 @@ public class JudgeServer {
     public static void main(String[] args) {
         loadConfigFromFile("config.json");
 
+        while(true){
+            try{
 
+            } catch (Exception ex){
+
+            }
+        }
     }
 }

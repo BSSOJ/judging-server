@@ -1,6 +1,7 @@
 package server;
 
 import data.Problem;
+import data.Submission;
 import data.Testcase;
 
 import java.sql.Connection;
@@ -42,6 +43,27 @@ public class DatabaseAdapter {
         }
     }
 
+    public Problem getProblem(int problemID){
+        try {
+            ResultSet rs = this.dbConnection.createStatement().executeQuery("SELCET * FROM problems WHERE " +
+                    "ProblemID=" + problemID);
+
+            if (rs.next()){
+                Problem p = new Problem();
+                p.problemID = rs.getInt("ProblemID");
+                p.problemCode = rs.getString("ProblemCode");
+                p.problemName = rs.getString("ProblemName");
+                p.problemValue = rs.getInt("ProblemValue");
+
+                return p;
+            }
+
+            return null;
+        } catch (Exception ex){
+            return null;
+        }
+    }
+
     public ArrayList<Testcase> getTestCases(int problemID){
         try{
             ResultSet rs = this.dbConnection.createStatement().executeQuery("SELECT * FROM testcases " +
@@ -51,11 +73,11 @@ public class DatabaseAdapter {
 
             while(rs.next()){
                 Testcase t = new Testcase();
-                t.testcaseID = Integer.parseInt(rs.getString("TestcaseID"));
+                t.testcaseID = rs.getInt("TestcaseID");
                 t.problemID = problemID;
                 t.inputURL = rs.getString("Input");
                 t.outputURL = rs.getString("Output");
-                t.caseValue = Integer.parseInt(rs.getString("CaseValue"));
+                t.caseValue = rs.getInt("CaseValue");
 
                 testcases.add(t);
             }
@@ -66,5 +88,35 @@ public class DatabaseAdapter {
         }
     }
 
+    public void addTestcaseResults(int submissionID, int testcaseID, String result){
+        try{
+            String query = "INSERT INTO judge_results (SubmissionID, TestcaseID, JudgeResult)" +
+                    " VALUES (" + submissionID + ", " + testcaseID + ", " + result + ")";
+            this.dbConnection.createStatement().executeQuery(query);
+        } catch (Exception ex){
+            System.err.println("Error adding testcase results: " + ex.getLocalizedMessage());
+        }
+    }
 
+    public Submission nextSubmission(){
+        try{
+            ResultSet rs = this.dbConnection.createStatement().executeQuery("SELECT * FROM submissions WHERE " +
+                    "SubmissionStatus='PEND' ORDER BY SubmissionDate ASC");
+
+            if (rs.next()){
+                Submission subm = new Submission();
+                subm.submissionID = rs.getInt("SubmissionID");
+                subm.problemID = rs.getInt("ProblemID");
+                subm.userID = rs.getInt("UserID");
+                subm.language = rs.getString("Language");
+                subm.sourceCode = rs.getString("SourceCode");
+
+                return subm;
+            } else {
+                return null;
+            }
+        } catch (Exception ex){
+            return null;
+        }
+    }
 }
