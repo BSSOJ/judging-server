@@ -27,5 +27,5 @@ int main(int argc, char** argv) {
 
 	int returnCode = system(runCommand.c_str());
 
-	return returnCode;
+	return WEXITSTATUS(returnCode);
 }
