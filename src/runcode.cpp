@@ -12,7 +12,6 @@ using namespace std;
 int main(int argc, char** argv) {
 	vector<string> args(argv, argv + argc);
 
-
 	string inputPath = args[1] + "/" + args[4];
 	string outputPath = args[1] + "/" + args[5];
 	string binaryOutputPath = args[1] + "/temp_output.txt";
@@ -20,12 +19,20 @@ int main(int argc, char** argv) {
 
 	string runCommand;
 	if (args[3] == "cpp" || args[3] == "cpp11") {
-		runCommand = "cat " + inputPath + " | " + binaryPath + " > " + binaryOutputPath;
+		runCommand = binaryPath;
 	} else if (args[3] == "java") {
-		runCommand = "cat " + inputPath + " | java " + binaryPath + " > " + binaryOutputPath;
+		runCommand = "java " + binaryPath;
 	}
 
-	int returnCode = system(runCommand.c_str());
+	//Include EasySandbox Security
+	runCommand = "[ LD_PERLOAD=./EasySandbox.so " + binaryPath + " ]";
+
+    //Pipe input and output to the run command
+    runCommand = "cat " + inputPath + " | " + runCommand + " > " + binaryOutputPath;
+
+    printf("runCommand = %s\n", runCommand.c_str());
+
+    int returnCode = system(runCommand.c_str());
 
 	return WEXITSTATUS(returnCode);
 }

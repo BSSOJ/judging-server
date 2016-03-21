@@ -21,12 +21,8 @@ public class RunnerThread extends Thread {
         dbAdapter = new DatabaseAdapter(JudgeServer.serverConfig);
     }
 
-    public void downloadFile(String url, String dest){
-        try{
-            Runtime.getRuntime().exec("wget " + url + " -O " + dest);
-        } catch (Exception ex){
-
-        }
+    public void downloadFile(String url, String dest) throws Exception {
+        Runtime.getRuntime().exec("wget " + url + " -O " + dest);
     }
 
     public void run(){
@@ -52,12 +48,19 @@ public class RunnerThread extends Thread {
             sourceWriter.close();
         } catch (Exception ex){
             System.err.println("Error writing source file to disk: " + ex.getLocalizedMessage());
+            this.dbAdapter.addTestcaseResults(subm.submissionID, tc.testcaseID, "IR");
+            return;
         }
 
         System.out.println("Source file written to disk");
 
-        downloadFile(tc.inputURL, workingDirectory + "/input.txt");
-        downloadFile(tc.outputURL, workingDirectory + "/output.txt");
+        try {
+            downloadFile(tc.inputURL, workingDirectory + "/input.txt");
+            downloadFile(tc.outputURL, workingDirectory + "/output.txt");
+        } catch (Exception ex){
+            this.dbAdapter.addTestcaseResults(subm.submissionID, tc.testcaseID, "IR");
+            return;
+        }
 
         System.out.println("Done downloading judge data");
 
@@ -87,7 +90,10 @@ public class RunnerThread extends Thread {
         System.out.println("Running testcase #" + this.tc.testcaseID);
         try{
             Process runcode = Runtime.getRuntime().exec("runcode " + workingDirectory + " main " + subm.language +
-                    " " + workingDirectory + "/input.txt " + workingDirectory + "/output.txt");
+                    " " + workingDirectory + "input.txt " + workingDirectory + "output.txt");
+
+            System.out.println("runcode " + workingDirectory + " main " + subm.language +
+                    " " + workingDirectory + "input.txt " + workingDirectory + "output.txt");
 
             int runReturn = runcode.waitFor();
 
