@@ -14,7 +14,6 @@ int main(int argc, char** argv) {
 
 	string inputPath = args[1] + "/" + args[4];
 	string outputPath = args[1] + "/" + args[5];
-	string binaryOutputPath = args[1] + "/temp_output.txt";
 	string binaryPath = args[1] + "/" + args[2];
 
 	string runCommand;
@@ -25,14 +24,19 @@ int main(int argc, char** argv) {
 	}
 
 	//Include EasySandbox Security
-	runCommand = "[ LD_PERLOAD=./EasySandbox.so " + binaryPath + " ]";
+	runCommand = "LD_PERLOAD=./EasySandbox.so " + runCommand;
 
     //Pipe input and output to the run command
-    runCommand = "cat " + inputPath + " | " + runCommand + " > " + binaryOutputPath;
+    runCommand = runCommand + " < " + inputPath + " > " + outputPath;
 
-    printf("runCommand = %s\n", runCommand.c_str());
+    //Stripping first line from EasySandbox
+    //See https://github.com/daveho/EasySandbox#limitations
+
+    string stripCommand =" echo \"$(tail -n +2 " + outputPath + " )\" > " + outputPath;
 
     int returnCode = system(runCommand.c_str());
+	if (WEXITSTATUS(returnCode) != 0) return WEXITSTATUS(returnCode);
 
+	returnCode = system(stripCommand.c_str());
 	return WEXITSTATUS(returnCode);
 }

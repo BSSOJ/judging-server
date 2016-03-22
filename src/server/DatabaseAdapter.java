@@ -131,4 +131,14 @@ public class DatabaseAdapter {
             return null;
         }
     }
+
+    public void setSubmissionResult(int submissionID, String result){
+        try{
+            String query = "UPDATE submissions SET Result='" + result + "' WHERE SubmissionID=" + submissionID;
+            System.out.println(query);
+            this.dbConnection.createStatement().executeUpdate(query);
+        } catch (Exception ex){
+            System.err.println("Error setting submission results: " + ex.getLocalizedMessage());
+        }
+    }
 }

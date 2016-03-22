@@ -3,6 +3,8 @@ package server;
 import data.Submission;
 import data.Testcase;
 import org.apache.commons.io.FileUtils;
+import runners.CodeRunner;
+import runners.ResultCode;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -14,6 +16,8 @@ public class RunnerThread extends Thread {
     private Testcase tc;
     private Submission subm;
     private DatabaseAdapter dbAdapter;
+
+    public ResultCode rc;
 
     public RunnerThread(Testcase _tc, Submission _subm){
         this.tc = _tc;
@@ -64,68 +68,12 @@ public class RunnerThread extends Thread {
 
         System.out.println("Done downloading judge data");
 
-        //Compile the source files
-        System.out.println("Compiling source files for testcase #" + this.tc.testcaseID);
+        this.rc = new CodeRunner().judgeSolution(subm.language, this.dbAdapter.
+                getProblem(subm.problemID).problemCode, workingDirectory);
 
-        try {
-            Process compile = Runtime.getRuntime().exec("compile " + sourceFileName + " " + subm.language +
-                    " " + workingDirectory);
-
-            BufferedReader compileReader = new BufferedReader(new InputStreamReader(compile.getInputStream()));
-            new Console(compileReader, "compiler").start();
-
-            int compileReturn = compile.waitFor();
-
-            if (compileReturn != 0){
-                this.dbAdapter.addTestcaseResults(subm.submissionID, tc.testcaseID, "CE");
-                return;
-            }
-        } catch (Exception ex){
-            this.dbAdapter.addTestcaseResults(subm.submissionID, tc.testcaseID, "IR");
-            System.out.println("Error compiling source file: " + ex.getLocalizedMessage());
-            return;
-        }
-
-        //Run and judge the source files
-        System.out.println("Running testcase #" + this.tc.testcaseID);
-        try{
-            Process runcode = Runtime.getRuntime().exec("runcode " + workingDirectory + " main " + subm.language +
-                    " " + workingDirectory + "input.txt " + workingDirectory + "output.txt");
-
-            System.out.println("runcode " + workingDirectory + " main " + subm.language +
-                    " " + workingDirectory + "input.txt " + workingDirectory + "output.txt");
-
-            int runReturn = runcode.waitFor();
-
-            if (runReturn != 0){
-                this.dbAdapter.addTestcaseResults(subm.submissionID, tc.testcaseID, "RE");
-                return;
-            }
-        } catch (Exception ex){
-            this.dbAdapter.addTestcaseResults(subm.submissionID, tc.testcaseID, "IR");
-            return;
-        }
-
-        //Judge the solutions
-        System.out.println("Judging submission #" + subm.submissionID);
-        try{
-            Process judge = Runtime.getRuntime().exec("judge " + workingDirectory + "output.txt " + workingDirectory
-                    + "temp_output.txt");
-
-            System.out.println("fuck me");
-            System.out.println("judge " + workingDirectory + "output.txt " + workingDirectory
-                    + "temp_output.txt");
-
-            int judgeReturn = judge.waitFor();
-            System.out.println("DiffReturnCode=" + judgeReturn);
-
-            if (judgeReturn == 0){
-                this.dbAdapter.addTestcaseResults(subm.submissionID, tc.testcaseID, "AC");
-            } else {
-                this.dbAdapter.addTestcaseResults(subm.submissionID, tc.testcaseID, "WA");
-            }
-        } catch (Exception ex){
-            this.dbAdapter.addTestcaseResults(subm.submissionID, tc.testcaseID, "IR");
-        }
+        if (this.rc == ResultCode.AC) dbAdapter.addTestcaseResults(subm.submissionID, tc.testcaseID, "AC");
+        if (this.rc == ResultCode.WA) dbAdapter.addTestcaseResults(subm.submissionID, tc.testcaseID, "WA");
+        if (this.rc == ResultCode.CE) dbAdapter.addTestcaseResults(subm.submissionID, tc.testcaseID, "CE");
+        if (this.rc == ResultCode.RE) dbAdapter.addTestcaseResults(subm.submissionID, tc.testcaseID, "RE");
     }
 }
