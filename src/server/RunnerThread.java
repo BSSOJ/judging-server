@@ -2,9 +2,6 @@ package server;
 
 import data.Submission;
 import data.Testcase;
-import org.apache.commons.io.FileUtils;
-import runners.CodeRunner;
-import runners.ResultCode;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -17,7 +14,7 @@ public class RunnerThread extends Thread {
     private Submission subm;
     private DatabaseAdapter dbAdapter;
 
-    public ResultCode rc;
+    public int returnCode;
 
     public RunnerThread(Testcase _tc, Submission _subm){
         this.tc = _tc;
@@ -68,12 +65,54 @@ public class RunnerThread extends Thread {
 
         System.out.println("Done downloading judge data");
 
-        this.rc = new CodeRunner().judgeSolution(subm.language, this.dbAdapter.
-                getProblem(subm.problemID).problemCode, workingDirectory);
+        returnCode = 7;
 
-        if (this.rc == ResultCode.AC) dbAdapter.addTestcaseResults(subm.submissionID, tc.testcaseID, "AC");
-        if (this.rc == ResultCode.WA) dbAdapter.addTestcaseResults(subm.submissionID, tc.testcaseID, "WA");
-        if (this.rc == ResultCode.CE) dbAdapter.addTestcaseResults(subm.submissionID, tc.testcaseID, "CE");
-        if (this.rc == ResultCode.RE) dbAdapter.addTestcaseResults(subm.submissionID, tc.testcaseID, "RE");
+        try {
+            if (subm.language.equals("cpp11")) {
+                Process p = Runtime.getRuntime().exec("judge_scripts/cpp11.sh " + workingDirectory + " "
+                        + LanguageUtils.getFileName(subm.language, dbAdapter.getProblem(subm.problemID).problemCode));
+
+                returnCode = p.waitFor();
+            } else if (subm.language.equals("cpp")) {
+                Process p = Runtime.getRuntime().exec("judge_scripts/cpp.sh " + workingDirectory + " "
+                        + LanguageUtils.getFileName(subm.language, dbAdapter.getProblem(subm.problemID).problemCode));
+
+                returnCode = p.waitFor();
+            } else if (subm.language.equals("java")) {
+                Process p = Runtime.getRuntime().exec("judge_scripts/java.sh " + workingDirectory + " "
+                        + LanguageUtils.getFileName(subm.language, dbAdapter.getProblem(subm.problemID).problemCode));
+
+                returnCode = p.waitFor();
+            }
+        } catch (Exception ex){
+            returnCode = 7;
+        }
+
+        switch (returnCode){
+            case 0:
+                this.dbAdapter.setSubmissionResult(this.subm.submissionID, "AC");
+                break;
+            case 1:
+                this.dbAdapter.setSubmissionResult(this.subm.submissionID, "WA");
+                break;
+            case 2:
+                this.dbAdapter.setSubmissionResult(this.subm.submissionID, "RE");
+                break;
+            case 3:
+                this.dbAdapter.setSubmissionResult(this.subm.submissionID, "TLE");
+                break;
+            case 4:
+                this.dbAdapter.setSubmissionResult(this.subm.submissionID, "MLE");
+                break;
+            case 5:
+                this.dbAdapter.setSubmissionResult(this.subm.submissionID, "OLE");
+                break;
+            case 6:
+                this.dbAdapter.setSubmissionResult(this.subm.submissionID, "CE");
+                break;
+            default:
+                this.dbAdapter.setSubmissionResult(this.subm.submissionID, "IR");
+                break;
+        }
     }
 }
