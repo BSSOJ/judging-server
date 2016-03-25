@@ -16,6 +16,7 @@
 #
 
 cd $1
+chmod 777 -R .
 
 # Compile the file
 g++ -o "main" -std=c++11 -O2 "$2"
@@ -25,7 +26,6 @@ if [ "$?" != 0 ]; then
 fi
 
 # Run the file
-poermis
 ./main < "input.txt" > "temp_output.txt" 2> "stderr.txt"
 
 if [ "$?" != 0 ]; then
@@ -37,6 +37,6 @@ diff -wBb "output.txt" "temp_output.txt"
 
 if [ "$?" == 0 ]; then
     return 0
-else
+elseo
     return 1
 fi

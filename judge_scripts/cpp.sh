@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Compile script for C++ (no C++11 support)
+# Compile script for C++11
 #
-#   ./cpp.sh [working_directory] [source_file]
+#   ./cpp11.sh [working_directory] [source_file]
 #
 # Returns:
 #   0: AC (Accepted)
@@ -15,26 +15,29 @@
 #   7: IR (Internal Error)
 #
 
+cd $1
+chmod 777 -R .
+
 # Compile the file
-g++ -o "$1main" -std=c++98 -O2 "$1$2"
+g++ -o "main" -O2 "$2"
 
 if [ "$?" != 0 ]; then
     return 6
 fi
 
 # Run the file
-CMD = "LD_PRELOAD=./EasySandbox.so $1main"
-CMD < "$1input.txt" > "$1temp_output.txt" 2> "$1stderr.txt"
+poermis
+./main < "input.txt" > "temp_output.txt" 2> "stderr.txt"
 
 if [ "$?" != 0 ]; then
     return 2
 fi
 
 # Compare the results from the run
-diff -wBb "$1output.txt" "$1temp_output.txt"
+diff -wBb "output.txt" "temp_output.txt"
 
 if [ "$?" == 0 ]; then
     return 0
-elsec
+else
     return 1
 fi
